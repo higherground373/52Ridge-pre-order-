@@ -1,0 +1,2068 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Bulk Order System</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      height: 100%;
+      overflow-x: hidden;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 28px;
+      background: #252525;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    
+    .restaurant-name {
+      font-size: 42px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .event-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #ffa500;
+      margin: 0 0 12px 0;
+    }
+    
+    .instructions {
+      font-size: 16px;
+      color: #b0b0b0;
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    .spreadsheet-container {
+      background: #252525;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      overflow-x: auto;
+      margin-bottom: 32px;
+    }
+    
+    .summary-container {
+      background: #252525;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #ffa500;
+    }
+    
+    .summary-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      color: #ffffff;
+    }
+    
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    
+    .order-card {
+      background: #1a1a1a;
+      border: 2px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 16px;
+      transition: all 0.2s;
+    }
+    
+    .order-card:hover {
+      border-color: #ffa500;
+      transform: translateY(-2px);
+    }
+    
+    .order-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+    
+    .order-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffa500;
+      margin: 0;
+    }
+    
+    .order-jersey {
+      font-size: 16px;
+      font-weight: 600;
+      color: #b0b0b0;
+      background: #252525;
+      padding: 4px 12px;
+      border-radius: 4px;
+    }
+    
+    .order-details {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .order-detail-row {
+      display: flex;
+      gap: 8px;
+      font-size: 14px;
+    }
+    
+    .order-label {
+      color: #888;
+      min-width: 80px;
+    }
+    
+    .order-value {
+      color: #e0e0e0;
+      font-weight: 500;
+    }
+    
+    .empty-summary {
+      text-align: center;
+      padding: 48px 24px;
+      color: #888;
+      font-size: 16px;
+    }
+    
+    .email-btn {
+      padding: 12px 24px;
+      background: #ffa500;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .email-btn:hover {
+      background: #ff8800;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
+    }
+    
+    .email-btn:disabled {
+      background: #555;
+      color: #888;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .preview-btn {
+      background: #3a3a3a;
+    }
+    
+    .preview-btn:hover {
+      background: #4a4a4a;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .modal-content {
+      background: #252525;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 90%;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px;
+      border-bottom: 2px solid #ffa500;
+    }
+    
+    .modal-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: #b0b0b0;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+    
+    .modal-close:hover {
+      color: #ffffff;
+    }
+    
+    .modal-body {
+      padding: 24px;
+    }
+    
+    .modal-description {
+      margin: 0 0 16px 0;
+      color: #b0b0b0;
+      font-size: 14px;
+    }
+    
+    .email-input {
+      width: 100%;
+      padding: 12px;
+      background: #1a1a1a;
+      border: 2px solid #3a3a3a;
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .email-input:focus {
+      outline: none;
+      border-color: #ffa500;
+    }
+    
+    .preview-section {
+      margin-top: 24px;
+    }
+    
+    .preview-title {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffa500;
+    }
+    
+    .email-preview {
+      background: #1a1a1a;
+      border: 2px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 20px;
+      color: #e0e0e0;
+      font-size: 14px;
+      line-height: 1.6;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .email-preview h3 {
+      margin: 0 0 16px 0;
+      color: #ffa500;
+      font-size: 18px;
+    }
+    
+    .email-preview .order-item {
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+    
+    .email-preview .order-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .email-preview .order-name-preview {
+      font-weight: 700;
+      color: #ffa500;
+      margin-bottom: 8px;
+    }
+    
+    .email-preview .order-detail-preview {
+      color: #b0b0b0;
+      margin-left: 12px;
+    }
+    
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding: 24px;
+      border-top: 1px solid #3a3a3a;
+    }
+    
+    .modal-cancel-btn {
+      padding: 12px 24px;
+      background: #3a3a3a;
+      color: #b0b0b0;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .modal-cancel-btn:hover {
+      background: #4a4a4a;
+      color: #e0e0e0;
+    }
+    
+    .modal-send-btn {
+      padding: 12px 24px;
+      background: #ffa500;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    
+    .modal-send-btn:hover {
+      background: #ff8800;
+      transform: translateY(-2px);
+    }
+    
+    .modal-send-btn:disabled {
+      background: #555;
+      color: #888;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .spreadsheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #ffa500;
+    }
+    
+    .spreadsheet-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      color: #ffffff;
+    }
+    
+    .order-count {
+      font-size: 16px;
+      color: #b0b0b0;
+    }
+    
+    .order-count strong {
+      color: #ffa500;
+      font-size: 20px;
+    }
+    
+    .spreadsheet-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 1200px;
+    }
+    
+    .spreadsheet-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .spreadsheet-table th {
+      background: #1a1a1a;
+      color: #ffa500;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 14px 12px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 3px solid #ffa500;
+    }
+    
+    .spreadsheet-table th:first-child {
+      border-top-left-radius: 8px;
+    }
+    
+    .spreadsheet-table th:last-child {
+      border-top-right-radius: 8px;
+    }
+    
+    .spreadsheet-table td {
+      padding: 8px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    
+    .spreadsheet-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .spreadsheet-table tr:hover td {
+      background: #222222;
+    }
+    
+    .cell-input, .cell-select {
+      width: 100%;
+      padding: 10px;
+      background: #0f0f0f;
+      border: 2px solid #3a3a3a;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .cell-input:focus, .cell-select:focus {
+      outline: none;
+      border-color: #ffa500;
+      background: #1a1a1a;
+    }
+    
+    .cell-select {
+      cursor: pointer;
+    }
+    
+    .cell-select option {
+      background: #1a1a1a;
+      color: #e0e0e0;
+    }
+    
+    .row-number {
+      width: 50px;
+      text-align: center;
+      font-weight: 700;
+      color: #888;
+      font-size: 14px;
+    }
+    
+    .name-col {
+      min-width: 180px;
+    }
+    
+    .jersey-col {
+      width: 90px;
+    }
+    
+    .adult-col, .kids-col {
+      min-width: 200px;
+    }
+    
+    .side-col {
+      width: 140px;
+    }
+    
+    .beverage-col {
+      min-width: 160px;
+    }
+    
+    .actions-col {
+      width: 80px;
+      text-align: center;
+    }
+    
+    .delete-btn {
+      padding: 8px 12px;
+      background: #5a2a2a;
+      color: #ff8080;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    
+    .delete-btn:hover {
+      background: #7a3535;
+      color: #ffa0a0;
+    }
+    
+    .clear-btn {
+      padding: 8px 12px;
+      background: #3a3a3a;
+      color: #b0b0b0;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    
+    .clear-btn:hover {
+      background: #4a4a4a;
+      color: #e0e0e0;
+    }
+    
+    .action-buttons {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    
+    .add-row-btn {
+      padding: 14px 28px;
+      background: #ffa500;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .add-row-btn:hover {
+      background: #ff8800;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 165, 0, 0.3);
+    }
+    
+    .add-row-btn:disabled {
+      background: #555;
+      color: #888;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .submit-all-btn {
+      padding: 14px 32px;
+      background: #2a5a2a;
+      color: #7fc87f;
+      border: 2px solid #357a35;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .submit-all-btn:hover:not(:disabled) {
+      background: #357a35;
+      color: #a0ffa0;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(42, 90, 42, 0.4);
+    }
+    
+    .submit-all-btn:disabled {
+      background: #2a2a2a;
+      color: #555;
+      border-color: #3a3a3a;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #3a3a3a;
+      border-top-color: #ffa500;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .toast-message {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffa500;
+      color: #1a1a1a;
+      padding: 16px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      z-index: 1001;
+      box-shadow: 0 4px 20px rgba(255, 165, 0, 0.4);
+      animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+      from {
+        transform: translateX(-50%) translateY(-100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .toast-error {
+      background: #ff6b6b;
+      color: white;
+    }
+    
+    .saved-indicator {
+      display: inline-block;
+      margin-left: 8px;
+      color: #7fc87f;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      .spreadsheet-container {
+        padding: 16px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .add-row-btn, .submit-all-btn {
+        width: 100%;
+      }
+      
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .button-group button {
+        width: 100%;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div id="loading" class="loading-overlay hidden">
+   <div class="loading-spinner"></div>
+  </div>
+  <div class="container">
+   <div class="header">
+    <h1 class="restaurant-name" id="restaurantName">The Game Day Pub</h1>
+    <div class="event-title" id="eventTitle">
+     Team Bulk Order Entry
+    </div>
+    <p class="instructions" id="instructions">Enter all team orders below in spreadsheet format. Fill out each row and click Save, or add multiple rows and Submit All at once.</p>
+   </div>
+   <div class="spreadsheet-container">
+    <div class="spreadsheet-header">
+     <h2 class="spreadsheet-title">Order Spreadsheet</h2>
+     <div class="order-count"><strong id="totalCount">0</strong> total orders saved
+     </div>
+    </div>
+    <table class="spreadsheet-table">
+     <thead>
+      <tr>
+       <th>#</th>
+       <th class="name-col">Customer Name</th>
+       <th class="jersey-col">Jersey #</th>
+       <th class="adult-col">Adult Order</th>
+       <th class="kids-col">Kids Order</th>
+       <th class="side-col">Side</th>
+       <th class="beverage-col">Beverage</th>
+       <th class="actions-col">Clear</th>
+      </tr>
+     </thead>
+     <tbody id="spreadsheetBody">
+     </tbody>
+    </table>
+    <div class="action-buttons"><button class="add-row-btn" id="addRowBtn" onclick="addNewRow()">+ Add Row</button> <button class="submit-all-btn" id="submitAllBtn" onclick="submitAllOrders()">Submit All Orders</button>
+    </div>
+   </div>
+   <div class="summary-container">
+    <div class="summary-header">
+     <h2 class="summary-title">Order Summary</h2>
+     <div class="button-group"><button class="email-btn preview-btn" id="previewBtn" onclick="showKitchenPreview()">👁️ Preview Kitchen Sheet</button> <button class="email-btn" id="emailBtn" onclick="showEmailModal()">📧 Send Pre-Order</button>
+     </div>
+    </div>
+    <div id="summaryGrid" class="summary-grid">
+     <div class="empty-summary">
+      No orders submitted yet. Fill out the spreadsheet above and click Submit All Orders.
+     </div>
+    </div>
+   </div>
+   <div id="kitchenPreviewModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 1200px;">
+     <div class="modal-header">
+      <h3 class="modal-title">Kitchen Order Sheet Preview</h3><button class="modal-close" onclick="hideKitchenPreview()">✕</button>
+     </div>
+     <div class="modal-body" style="max-height: 600px; overflow-y: auto;">
+      <div id="kitchenPreviewContent"></div>
+     </div>
+     <div class="modal-footer"><button class="modal-cancel-btn" onclick="hideKitchenPreview()">Close</button> <button class="modal-send-btn" onclick="printKitchenSheet()">🖨️ Print</button>
+     </div>
+    </div>
+   </div>
+   <div id="emailModal" class="modal-overlay hidden">
+    <div class="modal-content">
+     <div class="modal-header">
+      <h3 class="modal-title">Send Pre-Order to Restaurant</h3><button class="modal-close" onclick="hideEmailModal()">✕</button>
+     </div>
+     <div class="modal-body">
+      <p class="modal-description">Enter your contact information to send this pre-order:</p><label for="customerNameInput" style="display: block; margin-bottom: 8px; color: #ffa500; font-weight: 600; font-size: 14px;">Your Name</label> <input type="text" id="customerNameInput" class="email-input" placeholder="Enter your name" style="margin-bottom: 16px;"> <label for="customerEmailInput" style="display: block; margin-bottom: 8px; color: #ffa500; font-weight: 600; font-size: 14px;">Your Email</label> <input type="email" id="customerEmailInput" class="email-input" placeholder="your.email@example.com" style="margin-bottom: 16px;"> <label for="customerPhoneInput" style="display: block; margin-bottom: 8px; color: #ffa500; font-weight: 600; font-size: 14px;">Your Phone</label> <input type="tel" id="customerPhoneInput" class="email-input" placeholder="(555) 555-5555" style="margin-bottom: 16px;"> <label for="reservationDateInput" style="display: block; margin-bottom: 8px; color: #ffa500; font-weight: 600; font-size: 14px;">Reservation Date</label> <input type="date" id="reservationDateInput" class="email-input" style="margin-bottom: 16px;"> <label for="reservationTimeInput" style="display: block; margin-bottom: 8px; color: #ffa500; font-weight: 600; font-size: 14px;">Reservation Time</label> <input type="time" id="reservationTimeInput" class="email-input">
+      <div class="preview-section">
+       <h4 class="preview-title">Order Summary:</h4>
+       <div id="emailPreview" class="email-preview"></div>
+      </div>
+     </div>
+     <div class="modal-footer"><button class="modal-cancel-btn" onclick="hideEmailModal()">Cancel</button> <button class="modal-send-btn" onclick="sendEmail()">Send Pre-Order</button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      restaurant_name: "The Game Day Pub",
+      event_title: "Team Bulk Order Entry",
+      instructions: "Enter all team orders below in spreadsheet format. Fill out each row and click Save, or add multiple rows and Submit All at once.",
+      restaurant_email: "orders@gamedaypub.com",
+      background_color: "#1a1a1a",
+      surface_color: "#252525",
+      text_color: "#e0e0e0",
+      primary_action_color: "#ffa500",
+      accent_color: "#ffa500"
+    };
+    
+    let currentRecordCount = 0;
+    let rows = [];
+    let savedOrders = [];
+    let nextRowId = 1;
+    
+    const ADULT_OPTIONS = [
+      "Burger Deluxe",
+      "Chicken Burger",
+      "Chicken Tenders",
+      "Spaghetti Meat Sauce",
+      "Cod Burger",
+      "Pulled Pork Sandwich"
+    ];
+    
+    const KIDS_OPTIONS = [
+      "Kids Burger",
+      "Kids Chicken Finger",
+      "Kids Grilled Cheese",
+      "Kids Spaghetti"
+    ];
+    
+    const SIDE_OPTIONS = ["Fries", "Salad"];
+    
+    const BEVERAGE_OPTIONS = [
+      "Coke",
+      "Diet Coke",
+      "Sprite",
+      "Iced Tea",
+      "Lemonade",
+      "Water",
+      "Draft Beer"
+    ];
+    
+    const dataHandler = {
+      onDataChanged(data) {
+        currentRecordCount = data.length;
+        document.getElementById('totalCount').textContent = currentRecordCount;
+        savedOrders = data;
+        syncRowsWithData(data);
+        renderSummary(data);
+      }
+    };
+    
+    async function initializeApp() {
+      if (window.dataSdk) {
+        const initResult = await window.dataSdk.init(dataHandler);
+        if (!initResult.isOk) {
+          console.error("Failed to initialize data SDK");
+        }
+      }
+      
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig: defaultConfig,
+          onConfigChange: async (config) => {
+            document.getElementById('restaurantName').textContent = config.restaurant_name || defaultConfig.restaurant_name;
+            document.getElementById('eventTitle').textContent = config.event_title || defaultConfig.event_title;
+            document.getElementById('instructions').textContent = config.instructions || defaultConfig.instructions;
+            
+            document.body.style.background = config.background_color || defaultConfig.background_color;
+            
+            const surfaces = document.querySelectorAll('.header, .spreadsheet-container, .summary-container');
+            surfaces.forEach(surface => {
+              surface.style.background = config.surface_color || defaultConfig.surface_color;
+            });
+            
+            const textElements = document.querySelectorAll('.restaurant-name, .spreadsheet-title, .summary-title');
+            textElements.forEach(el => {
+              el.style.color = config.text_color || defaultConfig.text_color;
+            });
+            
+            const primaryButtons = document.querySelectorAll('.add-row-btn, .email-btn');
+            primaryButtons.forEach(btn => {
+              btn.style.background = config.primary_action_color || defaultConfig.primary_action_color;
+            });
+            
+            const accents = document.querySelectorAll('.event-title, .spreadsheet-table th, .order-count strong, .order-name');
+            accents.forEach(accent => {
+              accent.style.color = config.accent_color || defaultConfig.accent_color;
+            });
+            
+            const borders = document.querySelectorAll('.spreadsheet-table th, .summary-header, .spreadsheet-header');
+            borders.forEach(el => {
+              el.style.borderBottomColor = config.accent_color || defaultConfig.accent_color;
+            });
+          },
+          mapToCapabilities: (config) => ({
+            recolorables: [
+              {
+                get: () => config.background_color || defaultConfig.background_color,
+                set: (value) => {
+                  if (window.elementSdk) {
+                    window.elementSdk.config.background_color = value;
+                    window.elementSdk.setConfig({ background_color: value });
+                  }
+                }
+              },
+              {
+                get: () => config.surface_color || defaultConfig.surface_color,
+                set: (value) => {
+                  if (window.elementSdk) {
+                    window.elementSdk.config.surface_color = value;
+                    window.elementSdk.setConfig({ surface_color: value });
+                  }
+                }
+              },
+              {
+                get: () => config.text_color || defaultConfig.text_color,
+                set: (value) => {
+                  if (window.elementSdk) {
+                    window.elementSdk.config.text_color = value;
+                    window.elementSdk.setConfig({ text_color: value });
+                  }
+                }
+              },
+              {
+                get: () => config.primary_action_color || defaultConfig.primary_action_color,
+                set: (value) => {
+                  if (window.elementSdk) {
+                    window.elementSdk.config.primary_action_color = value;
+                    window.elementSdk.setConfig({ primary_action_color: value });
+                  }
+                }
+              },
+              {
+                get: () => config.accent_color || defaultConfig.accent_color,
+                set: (value) => {
+                  if (window.elementSdk) {
+                    window.elementSdk.config.accent_color = value;
+                    window.elementSdk.setConfig({ accent_color: value });
+                  }
+                }
+              }
+            ],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (config) => new Map([
+            ["restaurant_name", config.restaurant_name || defaultConfig.restaurant_name],
+            ["event_title", config.event_title || defaultConfig.event_title],
+            ["instructions", config.instructions || defaultConfig.instructions],
+            ["restaurant_email", config.restaurant_email || defaultConfig.restaurant_email]
+          ])
+        });
+      }
+      
+      addNewRow();
+    }
+    
+    function showLoading() {
+      document.getElementById('loading').classList.remove('hidden');
+    }
+    
+    function hideLoading() {
+      document.getElementById('loading').classList.add('hidden');
+    }
+    
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = 'toast-message' + (isError ? ' toast-error' : '');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function renderSummary(data) {
+      const summaryGrid = document.getElementById('summaryGrid');
+      
+      if (data.length === 0) {
+        summaryGrid.innerHTML = '<div class="empty-summary">No orders submitted yet. Fill out the spreadsheet above and click Submit All Orders.</div>';
+        return;
+      }
+      
+      summaryGrid.innerHTML = data.map(order => `
+        <div class="order-card">
+          <div class="order-card-header">
+            <h3 class="order-name">${order.customer_name}</h3>
+            ${order.jersey_number ? `<div class="order-jersey">#${order.jersey_number}</div>` : ''}
+          </div>
+          <div class="order-details">
+            ${order.adult_order ? `
+              <div class="order-detail-row">
+                <span class="order-label">Adult:</span>
+                <span class="order-value">${order.adult_order}</span>
+              </div>
+            ` : ''}
+            ${order.kids_order ? `
+              <div class="order-detail-row">
+                <span class="order-label">Kids:</span>
+                <span class="order-value">${order.kids_order}</span>
+              </div>
+            ` : ''}
+            ${order.side ? `
+              <div class="order-detail-row">
+                <span class="order-label">Side:</span>
+                <span class="order-value">${order.side}</span>
+              </div>
+            ` : ''}
+            ${order.beverage ? `
+              <div class="order-detail-row">
+                <span class="order-label">Beverage:</span>
+                <span class="order-value">${order.beverage}</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function addNewRow() {
+      const row = {
+        id: nextRowId++,
+        customerName: '',
+        jerseyNumber: '',
+        adultOrder: '',
+        kidsOrder: '',
+        side: '',
+        beverage: '',
+        saved: false,
+        recordId: null
+      };
+      
+      rows.push(row);
+      renderRows();
+    }
+    
+    function syncRowsWithData(data) {
+      const existingRowsMap = new Map(rows.map(r => [r.recordId, r]));
+      
+      rows = data.map((record, index) => {
+        const existingRow = existingRowsMap.get(record.__backendId);
+        return {
+          id: existingRow ? existingRow.id : nextRowId++,
+          customerName: existingRow ? existingRow.customerName : record.customer_name,
+          jerseyNumber: existingRow ? existingRow.jerseyNumber : record.jersey_number,
+          adultOrder: existingRow ? existingRow.adultOrder : record.adult_order,
+          kidsOrder: existingRow ? existingRow.kidsOrder : record.kids_order,
+          side: existingRow ? existingRow.side : record.side,
+          beverage: existingRow ? existingRow.beverage : record.beverage,
+          saved: false,
+          recordId: record.__backendId,
+          record: record
+        };
+      });
+      
+      if (rows.length === 0) {
+        addNewRow();
+      } else {
+        renderRows();
+      }
+    }
+    
+    function renderRows() {
+      const tbody = document.getElementById('spreadsheetBody');
+      tbody.innerHTML = '';
+      
+      rows.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.dataset.rowId = row.id;
+        
+        tr.innerHTML = `
+          <td class="row-number">${index + 1}</td>
+          <td class="name-col">
+            <input type="text" class="cell-input" value="${row.customerName}" 
+              onchange="updateRow(${row.id}, 'customerName', this.value)">
+          </td>
+          <td class="jersey-col">
+            <input type="text" class="cell-input" value="${row.jerseyNumber}" 
+              onchange="updateRow(${row.id}, 'jerseyNumber', this.value)">
+          </td>
+          <td class="adult-col">
+            <select class="cell-select" onchange="updateRow(${row.id}, 'adultOrder', this.value)">
+              <option value="">Select adult order</option>
+              ${ADULT_OPTIONS.map(opt => `<option value="${opt}" ${row.adultOrder === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </td>
+          <td class="kids-col">
+            <select class="cell-select" onchange="updateRow(${row.id}, 'kidsOrder', this.value)">
+              <option value="">Select kids order</option>
+              ${KIDS_OPTIONS.map(opt => `<option value="${opt}" ${row.kidsOrder === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </td>
+          <td class="side-col">
+            <select class="cell-select" onchange="updateRow(${row.id}, 'side', this.value)">
+              <option value="">Select side</option>
+              ${SIDE_OPTIONS.map(opt => `<option value="${opt}" ${row.side === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </td>
+          <td class="beverage-col">
+            <select class="cell-select" onchange="updateRow(${row.id}, 'beverage', this.value)">
+              <option value="">Select beverage</option>
+              ${BEVERAGE_OPTIONS.map(opt => `<option value="${opt}" ${row.beverage === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+            </select>
+          </td>
+          <td class="actions-col">
+            ${row.recordId ? 
+              `<button class="delete-btn" onclick="deleteRow(${row.id})">Del</button>` :
+              `<button class="clear-btn" onclick="clearRow(${row.id})">Clear</button>`
+            }
+          </td>
+        `;
+        
+        tbody.appendChild(tr);
+      });
+      
+      updateSubmitAllButton();
+    }
+    
+    function updateRow(rowId, field, value) {
+      const row = rows.find(r => r.id === rowId);
+      if (row) {
+        row[field] = value;
+        updateSubmitAllButton();
+      }
+    }
+    
+    function clearRow(rowId) {
+      const row = rows.find(r => r.id === rowId);
+      if (row) {
+        row.customerName = '';
+        row.jerseyNumber = '';
+        row.adultOrder = '';
+        row.kidsOrder = '';
+        row.side = '';
+        row.beverage = '';
+        renderRows();
+      }
+    }
+    
+    function isRowValid(row) {
+      return row.customerName.trim() !== '' && 
+             (row.adultOrder !== '' || row.kidsOrder !== '');
+    }
+    
+    async function deleteRow(rowId) {
+      const row = rows.find(r => r.id === rowId);
+      if (!row || !row.saved || !row.record) return;
+      
+      showLoading();
+      const result = await window.dataSdk.delete(row.record);
+      hideLoading();
+      
+      if (result.isOk) {
+        showToast('Order deleted successfully!');
+      } else {
+        showToast('Failed to delete order. Please try again.', true);
+      }
+    }
+    
+    async function submitAllOrders() {
+      const validRows = rows.filter(r => isRowValid(r));
+      
+      if (validRows.length === 0) {
+        showToast('No valid orders to submit.', true);
+        return;
+      }
+      
+      const newRows = validRows.filter(r => !r.recordId);
+      const updateRows = validRows.filter(r => r.recordId);
+      
+      if (currentRecordCount - updateRows.length + validRows.length > 999) {
+        showToast(`Cannot submit orders. Would exceed maximum limit of 999.`, true);
+        return;
+      }
+      
+      showLoading();
+      
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const row of updateRows) {
+        const orderData = {
+          ...row.record,
+          customer_name: row.customerName.trim(),
+          jersey_number: row.jerseyNumber.trim(),
+          adult_order: row.adultOrder,
+          kids_order: row.kidsOrder,
+          side: row.side,
+          beverage: row.beverage,
+          timestamp: new Date().toISOString()
+        };
+        
+        const result = await window.dataSdk.update(orderData);
+        
+        if (result.isOk) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      }
+      
+      for (const row of newRows) {
+        const orderData = {
+          customer_name: row.customerName.trim(),
+          jersey_number: row.jerseyNumber.trim(),
+          adult_order: row.adultOrder,
+          kids_order: row.kidsOrder,
+          side: row.side,
+          beverage: row.beverage,
+          timestamp: new Date().toISOString()
+        };
+        
+        const result = await window.dataSdk.create(orderData);
+        
+        if (result.isOk) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      }
+      
+      hideLoading();
+      
+      if (failCount === 0) {
+        showToast(`Successfully submitted ${successCount} orders!`);
+      } else {
+        showToast(`Submitted ${successCount} orders. ${failCount} failed.`, true);
+      }
+    }
+    
+    function updateSubmitAllButton() {
+      const validRows = rows.filter(r => isRowValid(r)).length;
+      const btn = document.getElementById('submitAllBtn');
+      btn.disabled = validRows === 0;
+      btn.textContent = validRows > 0 ? `Submit All Orders (${validRows})` : 'Submit All Orders';
+    }
+    
+    function showKitchenPreview() {
+      if (savedOrders.length === 0) {
+        showToast('No orders to preview. Please submit some orders first.', true);
+        return;
+      }
+      
+      const modal = document.getElementById('kitchenPreviewModal');
+      modal.classList.remove('hidden');
+      
+      const previewContent = document.getElementById('kitchenPreviewContent');
+      previewContent.innerHTML = generateKitchenPreviewHTML();
+    }
+    
+    function hideKitchenPreview() {
+      const modal = document.getElementById('kitchenPreviewModal');
+      modal.classList.add('hidden');
+    }
+    
+    function printKitchenSheet() {
+      const printContent = document.getElementById('kitchenPreviewContent').innerHTML;
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Kitchen Order Sheet</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              @media print { body { margin: 0.5in; } .no-print { display: none; } }
+            </style>
+          </head>
+          <body>${printContent}</body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+      }
+    }
+    
+    function generateKitchenPreviewHTML() {
+      const restaurantName = (window.elementSdk && window.elementSdk.config.restaurant_name) || defaultConfig.restaurant_name;
+      const eventTitle = (window.elementSdk && window.elementSdk.config.event_title) || defaultConfig.event_title;
+      
+      const tallies = calculateTallies();
+      
+      let html = `
+        <div style="text-align: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 3px solid #ffa500;">
+          <h1 style="margin: 0 0 5px 0; font-size: 28px; text-transform: uppercase; color: #ffffff;">${restaurantName}</h1>
+          <h2 style="margin: 5px 0; font-size: 20px; color: #ffa500;">${eventTitle} - KITCHEN ORDER SHEET</h2>
+        </div>
+        
+        <div style="margin: 20px 0; font-size: 14px; color: #e0e0e0;">
+          <strong>Total Orders:</strong> ${savedOrders.length}<br>
+          <strong>Date:</strong> ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">#</th>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">Customer Name</th>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">Jersey #</th>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">Adult Order</th>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">Kids Order</th>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">Side</th>
+              <th style="background: #ffa500; color: #1a1a1a; padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; border: 1px solid #ffa500;">Beverage</th>
+            </tr>
+          </thead>
+          <tbody>`;
+      
+      savedOrders.forEach((order, index) => {
+        const bgColor = index % 2 === 0 ? '#2a2a2a' : '#1a1a1a';
+        html += `
+          <tr>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; text-align: center; font-weight: bold; background: ${bgColor}; color: #e0e0e0;">${index + 1}</td>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; background: ${bgColor}; color: #e0e0e0;"><strong>${order.customer_name}</strong></td>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; text-align: center; background: ${bgColor}; color: #e0e0e0;">${order.jersey_number || '-'}</td>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; background: ${bgColor}; color: #e0e0e0;">${order.adult_order || '-'}</td>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; background: ${bgColor}; color: #e0e0e0;">${order.kids_order || '-'}</td>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; background: ${bgColor}; color: #e0e0e0;">${order.side || '-'}</td>
+            <td style="padding: 10px 8px; border: 1px solid #3a3a3a; font-size: 13px; background: ${bgColor}; color: #e0e0e0;">${order.beverage || '-'}</td>
+          </tr>`;
+      });
+      
+      html += `
+          </tbody>
+        </table>
+        
+        <div style="margin-top: 40px;">
+          <h2 style="font-size: 24px; font-weight: 700; color: #ffa500; margin: 0 0 20px 0; padding-bottom: 10px; border-bottom: 3px solid #ffa500;">📊 KITCHEN PREP TALLY</h2>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 15px 0; background: #ffa500; color: #1a1a1a; padding: 10px; text-align: center;">ADULT ORDERS</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: left; font-size: 11px; border: 1px solid #3a3a3a;">ITEM</th>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: center; font-size: 11px; border: 1px solid #3a3a3a; width: 60px;">TOTAL</th>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: center; font-size: 11px; border: 1px solid #3a3a3a; width: 60px;">FRIES</th>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: center; font-size: 11px; border: 1px solid #3a3a3a; width: 60px;">SALAD</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+      
+      Object.entries(tallies.adultOrders).forEach(([item, data]) => {
+        html += `
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 13px; color: #e0e0e0;">${item}</td>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 16px; font-weight: bold; text-align: center; background: #2a2a2a; color: #ffa500;">${data.total}</td>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 13px; text-align: center; color: #e0e0e0;">${data.fries || 0}</td>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 13px; text-align: center; color: #e0e0e0;">${data.salad || 0}</td>
+                  </tr>`;
+      });
+      
+      if (Object.keys(tallies.adultOrders).length === 0) {
+        html += `<tr><td colspan="4" style="padding: 12px; text-align: center; color: #888; font-style: italic;">No adult orders</td></tr>`;
+      }
+      
+      html += `
+                </tbody>
+              </table>
+            </div>
+            
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 15px 0; background: #ffa500; color: #1a1a1a; padding: 10px; text-align: center;">KIDS ORDERS</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: left; font-size: 11px; border: 1px solid #3a3a3a;">ITEM</th>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: center; font-size: 11px; border: 1px solid #3a3a3a; width: 60px;">TOTAL</th>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: center; font-size: 11px; border: 1px solid #3a3a3a; width: 60px;">FRIES</th>
+                    <th style="background: #3a3a3a; color: #ffa500; padding: 8px; text-align: center; font-size: 11px; border: 1px solid #3a3a3a; width: 60px;">SALAD</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+      
+      Object.entries(tallies.kidsOrders).forEach(([item, data]) => {
+        html += `
+                  <tr>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 13px; color: #e0e0e0;">${item}</td>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 16px; font-weight: bold; text-align: center; background: #2a2a2a; color: #ffa500;">${data.total}</td>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 13px; text-align: center; color: #e0e0e0;">${data.fries || 0}</td>
+                    <td style="padding: 8px; border: 1px solid #3a3a3a; font-size: 13px; text-align: center; color: #e0e0e0;">${data.salad || 0}</td>
+                  </tr>`;
+      });
+      
+      if (Object.keys(tallies.kidsOrders).length === 0) {
+        html += `<tr><td colspan="4" style="padding: 12px; text-align: center; color: #888; font-style: italic;">No kids orders</td></tr>`;
+      }
+      
+      html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 15px 0; background: #3a3a3a; padding: 10px; text-align: center;">SIDES TOTALS</h3>
+              <table style="width: 100%; border-collapse: collapse;">`;
+      
+      Object.entries(tallies.sides).forEach(([side, count]) => {
+        html += `
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #3a3a3a; font-size: 14px; color: #e0e0e0;">${side}</td>
+                  <td style="padding: 10px; border: 1px solid #3a3a3a; font-size: 18px; font-weight: bold; text-align: center; background: #2a2a2a; color: #ffa500; width: 80px;">${count}</td>
+                </tr>`;
+      });
+      
+      if (Object.keys(tallies.sides).length === 0) {
+        html += `<tr><td colspan="2" style="padding: 12px; text-align: center; color: #888; font-style: italic;">No sides ordered</td></tr>`;
+      }
+      
+      html += `
+              </table>
+            </div>
+            
+            <div>
+              <h3 style="font-size: 18px; font-weight: 700; color: #ffffff; margin: 0 0 15px 0; background: #3a3a3a; padding: 10px; text-align: center;">BEVERAGES TOTALS</h3>
+              <table style="width: 100%; border-collapse: collapse;">`;
+      
+      Object.entries(tallies.beverages).forEach(([beverage, count]) => {
+        html += `
+                <tr>
+                  <td style="padding: 10px; border: 1px solid #3a3a3a; font-size: 14px; color: #e0e0e0;">${beverage}</td>
+                  <td style="padding: 10px; border: 1px solid #3a3a3a; font-size: 18px; font-weight: bold; text-align: center; background: #2a2a2a; color: #ffa500; width: 80px;">${count}</td>
+                </tr>`;
+      });
+      
+      if (Object.keys(tallies.beverages).length === 0) {
+        html += `<tr><td colspan="2" style="padding: 12px; text-align: center; color: #888; font-style: italic;">No beverages ordered</td></tr>`;
+      }
+      
+      html += `
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 15px; border-top: 2px solid #3a3a3a; font-size: 12px; color: #888; text-align: center;">
+          Generated from ${restaurantName} Team Ordering System
+        </div>`;
+      
+      return html;
+    }
+    
+    function calculateTallies() {
+      const tallies = {
+        adultOrders: {},
+        kidsOrders: {},
+        sides: {},
+        beverages: {}
+      };
+      
+      savedOrders.forEach(order => {
+        if (order.adult_order) {
+          if (!tallies.adultOrders[order.adult_order]) {
+            tallies.adultOrders[order.adult_order] = { total: 0, fries: 0, salad: 0 };
+          }
+          tallies.adultOrders[order.adult_order].total++;
+          
+          if (order.side === 'Fries') {
+            tallies.adultOrders[order.adult_order].fries++;
+          } else if (order.side === 'Salad') {
+            tallies.adultOrders[order.adult_order].salad++;
+          }
+        }
+        
+        if (order.kids_order) {
+          if (!tallies.kidsOrders[order.kids_order]) {
+            tallies.kidsOrders[order.kids_order] = { total: 0, fries: 0, salad: 0 };
+          }
+          tallies.kidsOrders[order.kids_order].total++;
+          
+          if (order.side === 'Fries') {
+            tallies.kidsOrders[order.kids_order].fries++;
+          } else if (order.side === 'Salad') {
+            tallies.kidsOrders[order.kids_order].salad++;
+          }
+        }
+        
+        if (order.side) {
+          tallies.sides[order.side] = (tallies.sides[order.side] || 0) + 1;
+        }
+        
+        if (order.beverage) {
+          tallies.beverages[order.beverage] = (tallies.beverages[order.beverage] || 0) + 1;
+        }
+      });
+      
+      return tallies;
+    }
+    
+    function generateEmailContent() {
+      if (savedOrders.length === 0) {
+        return '<p>No orders to display.</p>';
+      }
+      
+      const restaurantName = (window.elementSdk && window.elementSdk.config.restaurant_name) || defaultConfig.restaurant_name;
+      const eventTitle = (window.elementSdk && window.elementSdk.config.event_title) || defaultConfig.event_title;
+      
+      let content = `<h3>${restaurantName} - ${eventTitle}</h3>`;
+      content += `<p style="margin-bottom: 20px;">Total Orders: ${savedOrders.length}</p>`;
+      
+      savedOrders.forEach((order, index) => {
+        content += '<div class="order-item">';
+        content += `<div class="order-name-preview">${index + 1}. ${order.customer_name}`;
+        if (order.jersey_number) {
+          content += ` (#${order.jersey_number})`;
+        }
+        content += '</div>';
+        
+        if (order.adult_order) {
+          content += `<div class="order-detail-preview">Adult: ${order.adult_order}</div>`;
+        }
+        if (order.kids_order) {
+          content += `<div class="order-detail-preview">Kids: ${order.kids_order}</div>`;
+        }
+        if (order.side) {
+          content += `<div class="order-detail-preview">Side: ${order.side}</div>`;
+        }
+        if (order.beverage) {
+          content += `<div class="order-detail-preview">Beverage: ${order.beverage}</div>`;
+        }
+        content += '</div>';
+      });
+      
+      return content;
+    }
+    
+    function showEmailModal() {
+      if (savedOrders.length === 0) {
+        showToast('No orders to send. Please submit some orders first.', true);
+        return;
+      }
+      
+      const modal = document.getElementById('emailModal');
+      modal.classList.remove('hidden');
+      
+      const preview = document.getElementById('emailPreview');
+      preview.innerHTML = generateEmailContent();
+      
+      document.getElementById('customerNameInput').value = '';
+      document.getElementById('customerEmailInput').value = '';
+      document.getElementById('customerPhoneInput').value = '';
+      document.getElementById('customerNameInput').focus();
+    }
+    
+    function hideEmailModal() {
+      const modal = document.getElementById('emailModal');
+      modal.classList.add('hidden');
+    }
+    
+    function sendEmail() {
+      const customerName = document.getElementById('customerNameInput').value.trim();
+      const customerEmail = document.getElementById('customerEmailInput').value.trim();
+      const customerPhone = document.getElementById('customerPhoneInput').value.trim();
+      const reservationDate = document.getElementById('reservationDateInput').value;
+      const reservationTime = document.getElementById('reservationTimeInput').value;
+      
+      if (!customerName) {
+        showToast('Please enter your name.', true);
+        return;
+      }
+      
+      if (!customerEmail) {
+        showToast('Please enter your email address.', true);
+        return;
+      }
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(customerEmail)) {
+        showToast('Please enter a valid email address.', true);
+        return;
+      }
+      
+      if (!customerPhone) {
+        showToast('Please enter your phone number.', true);
+        return;
+      }
+      
+      if (!reservationDate) {
+        showToast('Please enter the reservation date.', true);
+        return;
+      }
+      
+      if (!reservationTime) {
+        showToast('Please enter the reservation time.', true);
+        return;
+      }
+      
+      const restaurantName = (window.elementSdk && window.elementSdk.config.restaurant_name) || defaultConfig.restaurant_name;
+      const eventTitle = (window.elementSdk && window.elementSdk.config.event_title) || defaultConfig.event_title;
+      const restaurantEmail = (window.elementSdk && window.elementSdk.config.restaurant_email) || defaultConfig.restaurant_email;
+      
+      const formattedDate = new Date(reservationDate).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      const formattedTime = new Date(`2000-01-01T${reservationTime}`).toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      
+      const tallies = calculateTallies();
+      
+      let htmlBody = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>${restaurantName} - Pre-Order</title>
+  <style>
+    @media print {
+      body { margin: 0.5in; }
+      .no-print { display: none; }
+    }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 3px solid #333;
+      padding-bottom: 15px;
+    }
+    .header h1 {
+      margin: 0 0 5px 0;
+      font-size: 28px;
+      text-transform: uppercase;
+    }
+    .header h2 {
+      margin: 5px 0;
+      font-size: 20px;
+      color: #555;
+    }
+    .reservation-info {
+      background: #fff3cd;
+      padding: 20px;
+      margin: 20px 0;
+      border-left: 5px solid #ffc107;
+      text-align: center;
+    }
+    .reservation-info h3 {
+      margin: 0 0 15px 0;
+      font-size: 18px;
+      color: #856404;
+      text-transform: uppercase;
+    }
+    .reservation-details {
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+    }
+    .contact-info {
+      background: #f5f5f5;
+      padding: 15px;
+      margin: 20px 0;
+      border-left: 4px solid #333;
+    }
+    .contact-info h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+    }
+    .order-info {
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th {
+      background: #333;
+      color: white;
+      padding: 12px 8px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      border: 1px solid #333;
+    }
+    td {
+      padding: 10px 8px;
+      border: 1px solid #ddd;
+      font-size: 13px;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .tally-section {
+      margin-top: 40px;
+      page-break-before: avoid;
+    }
+    .tally-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0 0 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #333;
+      text-transform: uppercase;
+    }
+    .tally-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .tally-box h4 {
+      background: #333;
+      color: white;
+      padding: 10px;
+      margin: 0 0 15px 0;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .tally-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .tally-table th {
+      background: #666;
+      color: white;
+      padding: 8px;
+      font-size: 11px;
+      border: 1px solid #666;
+    }
+    .tally-table td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      font-size: 13px;
+    }
+    .tally-total {
+      font-weight: bold;
+      text-align: center;
+      background: #e9e9e9;
+      font-size: 16px;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 2px solid #ddd;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+    }
+    .print-btn {
+      margin: 20px 0;
+      padding: 12px 24px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .print-btn:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ Print This Pre-Order</button>
+  
+  <div class="header">
+    <h1>${restaurantName}</h1>
+    <h2>${eventTitle} - PRE-ORDER</h2>
+  </div>
+  
+  <div class="reservation-info">
+    <h3>⏰ Reservation Details</h3>
+    <div class="reservation-details">
+      ${formattedDate}<br>
+      ${formattedTime}
+    </div>
+  </div>
+  
+  <div class="contact-info">
+    <h3>Customer Contact Information:</h3>
+    <strong>Name:</strong> ${customerName}<br>
+    <strong>Email:</strong> ${customerEmail}<br>
+    <strong>Phone:</strong> ${customerPhone}
+  </div>
+  
+  <div class="order-info">
+    <strong>Total Orders:</strong> ${savedOrders.length}<br>
+    <strong>Date Submitted:</strong> ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 40px;">#</th>
+        <th style="width: 180px;">Customer Name</th>
+        <th style="width: 70px;">Jersey #</th>
+        <th style="width: 200px;">Adult Order</th>
+        <th style="width: 180px;">Kids Order</th>
+        <th style="width: 100px;">Side</th>
+        <th style="width: 130px;">Beverage</th>
+      </tr>
+    </thead>
+    <tbody>`;
+      
+      savedOrders.forEach((order, index) => {
+        htmlBody += `
+      <tr>
+        <td style="text-align: center; font-weight: bold;">${index + 1}</td>
+        <td><strong>${order.customer_name}</strong></td>
+        <td style="text-align: center;">${order.jersey_number || '-'}</td>
+        <td>${order.adult_order || '-'}</td>
+        <td>${order.kids_order || '-'}</td>
+        <td>${order.side || '-'}</td>
+        <td>${order.beverage || '-'}</td>
+      </tr>`;
+      });
+      
+      htmlBody += `
+    </tbody>
+  </table>
+  
+  <div class="tally-section">
+    <h2 class="tally-title">📊 Kitchen Prep Tally</h2>
+    
+    <div class="tally-grid">
+      <div class="tally-box">
+        <h4>Adult Orders</h4>
+        <table class="tally-table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Item</th>
+              <th style="width: 60px; text-align: center;">Total</th>
+              <th style="width: 60px; text-align: center;">Fries</th>
+              <th style="width: 60px; text-align: center;">Salad</th>
+            </tr>
+          </thead>
+          <tbody>`;
+      
+      if (Object.keys(tallies.adultOrders).length > 0) {
+        Object.entries(tallies.adultOrders).forEach(([item, data]) => {
+          htmlBody += `
+            <tr>
+              <td>${item}</td>
+              <td class="tally-total">${data.total}</td>
+              <td style="text-align: center;">${data.fries || 0}</td>
+              <td style="text-align: center;">${data.salad || 0}</td>
+            </tr>`;
+        });
+      } else {
+        htmlBody += `<tr><td colspan="4" style="text-align: center; color: #999; font-style: italic;">No adult orders</td></tr>`;
+      }
+      
+      htmlBody += `
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="tally-box">
+        <h4>Kids Orders</h4>
+        <table class="tally-table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Item</th>
+              <th style="width: 60px; text-align: center;">Total</th>
+              <th style="width: 60px; text-align: center;">Fries</th>
+              <th style="width: 60px; text-align: center;">Salad</th>
+            </tr>
+          </thead>
+          <tbody>`;
+      
+      if (Object.keys(tallies.kidsOrders).length > 0) {
+        Object.entries(tallies.kidsOrders).forEach(([item, data]) => {
+          htmlBody += `
+            <tr>
+              <td>${item}</td>
+              <td class="tally-total">${data.total}</td>
+              <td style="text-align: center;">${data.fries || 0}</td>
+              <td style="text-align: center;">${data.salad || 0}</td>
+            </tr>`;
+        });
+      } else {
+        htmlBody += `<tr><td colspan="4" style="text-align: center; color: #999; font-style: italic;">No kids orders</td></tr>`;
+      }
+      
+      htmlBody += `
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="tally-grid">
+      <div class="tally-box">
+        <h4>Sides Totals</h4>
+        <table class="tally-table">
+          <tbody>`;
+      
+      if (Object.keys(tallies.sides).length > 0) {
+        Object.entries(tallies.sides).forEach(([side, count]) => {
+          htmlBody += `
+            <tr>
+              <td>${side}</td>
+              <td class="tally-total" style="width: 80px;">${count}</td>
+            </tr>`;
+        });
+      } else {
+        htmlBody += `<tr><td colspan="2" style="text-align: center; color: #999; font-style: italic;">No sides ordered</td></tr>`;
+      }
+      
+      htmlBody += `
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="tally-box">
+        <h4>Beverages Totals</h4>
+        <table class="tally-table">
+          <tbody>`;
+      
+      if (Object.keys(tallies.beverages).length > 0) {
+        Object.entries(tallies.beverages).forEach(([beverage, count]) => {
+          htmlBody += `
+            <tr>
+              <td>${beverage}</td>
+              <td class="tally-total" style="width: 80px;">${count}</td>
+            </tr>`;
+        });
+      } else {
+        htmlBody += `<tr><td colspan="2" style="text-align: center; color: #999; font-style: italic;">No beverages ordered</td></tr>`;
+      }
+      
+      htmlBody += `
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    Pre-Order submitted through ${restaurantName} Team Ordering System
+  </div>
+</body>
+</html>`;
+      
+      const blob = new Blob([htmlBody], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      const subject = `PRE-ORDER for ${formattedDate} at ${formattedTime} - ${customerName} (${savedOrders.length} orders)`;
+      
+      let emailBody = `${restaurantName.toUpperCase()} - ${eventTitle.toUpperCase()}
+TEAM PRE-ORDER
+
+=========================================
+RESERVATION DETAILS
+=========================================
+Date: ${formattedDate}
+Time: ${formattedTime}
+
+Customer Name: ${customerName}
+Email: ${customerEmail}
+Phone: ${customerPhone}
+
+Total Orders: ${savedOrders.length}
+Date Submitted: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+
+=========================================
+COMPLETE ORDER LIST
+=========================================
+
+`;
+      
+      savedOrders.forEach((order, index) => {
+        emailBody += `${index + 1}. ${order.customer_name}`;
+        if (order.jersey_number) {
+          emailBody += ` (Jersey #${order.jersey_number})`;
+        }
+        emailBody += `\n`;
+        if (order.adult_order) {
+          emailBody += `   Adult Order: ${order.adult_order}\n`;
+        }
+        if (order.kids_order) {
+          emailBody += `   Kids Order: ${order.kids_order}\n`;
+        }
+        if (order.side) {
+          emailBody += `   Side: ${order.side}\n`;
+        }
+        if (order.beverage) {
+          emailBody += `   Beverage: ${order.beverage}\n`;
+        }
+        emailBody += `\n`;
+      });
+      
+      emailBody += `
+=========================================
+KITCHEN PREP TALLY
+=========================================
+
+--- ADULT ORDERS ---
+`;
+      
+      if (Object.keys(tallies.adultOrders).length > 0) {
+        Object.entries(tallies.adultOrders).forEach(([item, data]) => {
+          emailBody += `${item}: ${data.total} total (${data.fries || 0} with fries, ${data.salad || 0} with salad)\n`;
+        });
+      } else {
+        emailBody += `No adult orders\n`;
+      }
+      
+      emailBody += `\n--- KIDS ORDERS ---\n`;
+      
+      if (Object.keys(tallies.kidsOrders).length > 0) {
+        Object.entries(tallies.kidsOrders).forEach(([item, data]) => {
+          emailBody += `${item}: ${data.total} total (${data.fries || 0} with fries, ${data.salad || 0} with salad)\n`;
+        });
+      } else {
+        emailBody += `No kids orders\n`;
+      }
+      
+      emailBody += `\n--- SIDES TOTALS ---\n`;
+      
+      if (Object.keys(tallies.sides).length > 0) {
+        Object.entries(tallies.sides).forEach(([side, count]) => {
+          emailBody += `${side}: ${count}\n`;
+        });
+      } else {
+        emailBody += `No sides ordered\n`;
+      }
+      
+      emailBody += `\n--- BEVERAGES TOTALS ---\n`;
+      
+      if (Object.keys(tallies.beverages).length > 0) {
+        Object.entries(tallies.beverages).forEach(([beverage, count]) => {
+          emailBody += `${beverage}: ${count}\n`;
+        });
+      } else {
+        emailBody += `No beverages ordered\n`;
+      }
+      
+      emailBody += `\n=========================================\nA printable kitchen sheet has also been downloaded to your computer.\n`;
+      
+      const mailtoLink = `mailto:${restaurantEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+      
+      const tempLink = document.createElement('a');
+      tempLink.href = blobUrl;
+      tempLink.download = `${restaurantName.replace(/\s+/g, '-')}-Order-${reservationDate}.html`;
+      tempLink.click();
+      
+      setTimeout(() => {
+        window.open(mailtoLink, '_blank');
+      }, 500);
+      
+      hideEmailModal();
+      showToast('Kitchen order sheet downloaded! Email opening...');
+    }
+    
+    initializeApp();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a7a69a2676c2724',t:'MTc2NDY3NDE5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </html>
